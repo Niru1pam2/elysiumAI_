@@ -1,2 +1,10 @@
+# Environment variables
 .env
-node-modules/
+.env.*
+
+# Firebase Admin SDK credentials
+serviceAccountKey.json
+
+# Ignore node_modules in ANY folder or subfolder
+**/node_modules
+node_modules/
