@@ -19,15 +19,19 @@ app.use(
   }),
 );
 app.use(cookieParser());
-app.use("/api/auth", proxy(process.env.AUTH_SERVICE_URL));
-app.use("/api/chat", protect, proxyWithHeader(process.env.CHAT_SERVICE_URL));
-app.use("/api/agent", protect, proxyWithHeader(process.env.AGENT_SERVICE_URL));
 
+// Root Health Check
 app.get("/", (req, res) => {
   res.send("Hello from the gateway!");
 });
 
+// Auth Verification Route
 app.get("/api/me", protect, getCurrentUser);
+
+// Microservice Proxy Routes
+app.use("/api/auth", proxy(process.env.AUTH_SERVICE_URL));
+app.use("/api/chat", protect, proxyWithHeader(process.env.CHAT_SERVICE_URL));
+app.use("/api/agent", protect, proxyWithHeader(process.env.AGENT_SERVICE_URL));
 
 app.listen(PORT, () => {
   console.log(`Gateway server is running on port ${PORT}`);
