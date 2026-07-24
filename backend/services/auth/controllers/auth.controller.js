@@ -64,15 +64,12 @@ export const loginController = async (req, res) => {
 export const logoutController = async (req, res) => {
   try {
     const sessionId = req.cookies?.session;
+    console.log("cookies", req.cookies);
 
     if (sessionId) {
       await redis.del(`session:${sessionId}`);
       // Pass the matching cookie options when clearing
-      res.clearCookie("session", {
-        httpOnly: COOKIE_OPTIONS.httpOnly,
-        secure: COOKIE_OPTIONS.secure,
-        sameSite: COOKIE_OPTIONS.sameSite,
-      });
+      res.clearCookie("session");
     }
 
     return res.status(200).json({ message: "Logged out successfully" });
