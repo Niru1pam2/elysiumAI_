@@ -2,7 +2,14 @@ import { getModel } from "../config/llmModels.js";
 
 export const router = async (state) => {
   const llm = await getModel("router");
-  const prompt = `
+
+  // 1. Ensure prompt is a plain string
+  const userQuery =
+    typeof state.prompt === "string"
+      ? state.prompt
+      : state.prompt?.content || JSON.stringify(state.prompt);
+
+  const promptText = `
     You are an agent router.
 
     Available agents:
@@ -14,47 +21,14 @@ export const router = async (state) => {
     - vision
 
     Rules:
-
-    chat:
-    General conversation,
-    explanations,
-    learning,
-    questions.
-
-
-    search:
-    Current events,
-    latest information,
-    news,
-    recent developments,
-    internet lookup.
-
-
-    coding:
-    Generate code,
-    debug code,
-    build projects,
-    architecture,
-    API design.
-
-
-    pdf:
-    Questions about generate PDFs 
-    or document context.
-
-
-    ppt:
-    Questions about generate ppts
-    or ppt context.
-
-    
-    vision:
-    Generate image,
-    create image.
-
+    chat: General conversation, explanations, learning, questions.
+    search: Current events, latest information, news, recent developments, internet lookup.
+    coding: Generate code, debug code, build projects, architecture, API design.
+    pdf: Questions about generate PDFs or document context.
+    ppt: Questions about generate ppts or ppt context.
+    vision: Generate image, create image.
 
     Return ONLY one word:
-
     chat
     search
     coding
@@ -63,13 +37,19 @@ export const router = async (state) => {
     vision
 
     User Query:
-    ${state.prompt}
-    `;
+    ${userQuery}
+  `;
 
-  const response = (await llm).invoke(prompt);
-  console.log(response);
+  // 2. Pass the plain string to llm.invoke()
+  const response = await llm.invoke(promptText);
+
+  const agentChoice = (response.content || response)
+    .toString()
+    .trim()
+    .toLowerCase();
+
   return {
     ...state,
-    agent: response.content.trim().toLowerCase(),
+    agent: agentChoice,
   };
 };
