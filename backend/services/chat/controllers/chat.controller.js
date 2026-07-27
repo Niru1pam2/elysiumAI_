@@ -101,9 +101,7 @@ export const getMessages = async (req, res) => {
     }
 
     // Sort ascending (1) so chat messages render in chronological order
-    const messages = await Message.find({ conversationId }).sort({
-      createdAt: 1,
-    });
+    const messages = await Message.find({ conversationId });
 
     return res.status(200).json(messages);
   } catch (error) {

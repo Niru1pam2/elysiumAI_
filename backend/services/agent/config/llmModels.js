@@ -22,7 +22,7 @@ export const getModel = async (agent) => {
     case "search":
       return groq;
     case "coding":
-      return gemini;
+      return groq;
     default:
       return groq;
   }
