@@ -8,22 +8,40 @@ import { setMessages } from "../redux/messageSlice";
 
 export default function ChatArea() {
   const { selectedConversation } = useSelector((state) => state.conversation);
-
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const getMessage = async () => {
-      if (selectedConversation) {
-        if (selectedConversation.title == "New Chat") return;
-        const messages = await getMessages(selectedConversation?._id);
-        dispatch(setMessages(messages));
+    let isMounted = true;
+
+    const fetchMessages = async () => {
+      if (!selectedConversation?._id) {
+        dispatch(setMessages([]));
+        return;
+      }
+
+      try {
+        const messages = await getMessages(selectedConversation._id);
+
+        if (isMounted && Array.isArray(messages)) {
+          if (messages.length > 0) {
+            dispatch(setMessages(messages));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch messages:", error);
       }
     };
 
-    getMessage();
-  }, [dispatch, selectedConversation, selectedConversation?._id]);
+    fetchMessages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch, selectedConversation?._id]);
+
   return (
-    <div className="flex-1 flex flex-col">
+    // 🔴 Added h-full min-h-0 overflow-hidden so ChatInput stays pinned at the bottom!
+    <div className="flex-1 flex flex-col h-full min-h-0 bg-[#0d0f14] overflow-hidden relative">
       <Nav />
       <MessageList />
       <ChatInput />
