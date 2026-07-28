@@ -14,13 +14,14 @@ export default function ChatArea() {
   useEffect(() => {
     const getMessage = async () => {
       if (selectedConversation) {
+        if (selectedConversation.title == "New Chat") return;
         const messages = await getMessages(selectedConversation?._id);
         dispatch(setMessages(messages));
       }
     };
 
     getMessage();
-  }, [dispatch, selectedConversation]);
+  }, [dispatch, selectedConversation, selectedConversation?._id]);
   return (
     <div className="flex-1 flex flex-col">
       <Nav />

@@ -16,7 +16,11 @@ export const createConversation = async (req, res) => {
     const userId = getUserIdFromHeader(req, res);
     if (!userId) return;
 
-    const conversation = await Conversation.create({ userId });
+    const { title } = req.body;
+    const conversation = await Conversation.create({
+      userId,
+      title: title || "New Chat",
+    });
 
     return res.status(201).json(conversation);
   } catch (error) {

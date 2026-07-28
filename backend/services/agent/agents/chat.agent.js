@@ -8,7 +8,7 @@ import { getMemory } from "../config/memory.js";
 
 export const chatAgent = async (state) => {
   const llm = await getModel("chat");
-  const history = await getMemory(state.conversationId);
+  const history = await getMemory(state.conversationId, state.headers);
 
   const systemPrompt = `You are elysiumAI, an intelligent AI assistant.
 
