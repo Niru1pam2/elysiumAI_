@@ -40,7 +40,11 @@ export default function MessageList() {
         <div>
           {messages?.map((msg, i) => (
             <div key={i} className="mt-3">
-              <MessageBubble role={msg?.role} content={msg?.content} />
+              <MessageBubble
+                role={msg?.role}
+                content={msg?.content}
+                images={msg.images || []}
+              />
             </div>
           ))}
         </div>

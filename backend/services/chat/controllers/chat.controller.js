@@ -50,7 +50,7 @@ export const saveMessage = async (req, res) => {
     const userId = getUserIdFromHeader(req, res);
     if (!userId) return;
 
-    const { conversationId, role, content } = req.body;
+    const { conversationId, role, content, images } = req.body;
 
     if (!conversationId || !role || !content) {
       return res.status(400).json({ error: "Missing required message fields" });
@@ -72,6 +72,7 @@ export const saveMessage = async (req, res) => {
       conversationId,
       content,
       role,
+      images,
     });
 
     // Touch conversation's updatedAt timestamp so it bumps to top of recent chat lists
