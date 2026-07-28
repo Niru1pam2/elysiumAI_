@@ -1,19 +1,27 @@
-export const getMessages = async (conversationId) => {
+// backend/services/agent/utils/getMessages.js
+import axios from "axios";
+
+export const getMessages = async (conversationId, headers = {}) => {
+  if (!conversationId) return [];
+
   try {
-    const { data } = await axios.get(
+    const response = await axios.get(
       `${process.env.CHAT_SERVICE_URL}/get-messages/${conversationId}`,
       {
         headers: {
-          "x-user-id": req.headers["x-user-id"] || "",
-          cookie: req.headers.cookie || "",
-          authorization: req.headers.authorization || "",
+          "x-user-id": headers["x-user-id"] || headers?.["X-User-Id"] || "",
+          cookie: headers.cookie || "",
+          authorization: headers.authorization || "",
         },
       },
     );
 
-    return data;
+    return response.data;
   } catch (error) {
-    console.log(error);
-    return null;
+    console.error(
+      "Failed to fetch messages from Chat Service:",
+      error?.message,
+    );
+    return [];
   }
 };

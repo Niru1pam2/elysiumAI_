@@ -18,11 +18,28 @@ const conversationSlice = createSlice({
     setSelectedConversation: (state, action) => {
       state.selectedConversation = action.payload;
     },
+
+    setConversationTitle: (state, action) => {
+      const { title, conversationId } = action.payload;
+
+      const conv = state.conversations.find((c) => c._id === conversationId);
+      if (conv) {
+        conv.title = title;
+      }
+
+      if (state.selectedConversation?._id === conversationId) {
+        state.selectedConversation.title = title;
+      }
+    },
   },
 });
 
-export const { setConversations, addConversation, setSelectedConversation } =
-  conversationSlice.actions;
+export const {
+  setConversations,
+  addConversation,
+  setSelectedConversation,
+  setConversationTitle,
+} = conversationSlice.actions;
 
 // Standard Practice: Export the reducer as default
 export default conversationSlice.reducer;

@@ -1,42 +1,63 @@
-import { Paperclip, Mic, Send } from "lucide-react";
+import { Mic, Paperclip, Send } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { createConversation } from "../features/createConversation";
 import sendMessage from "../features/sendMessage";
-import { addMessage, setMessages } from "../redux/messageSlice"; // Or use addMessage if available
+import {
+  addConversation,
+  setSelectedConversation,
+} from "../redux/conversationSlice";
+import { addMessage } from "../redux/messageSlice";
 
 export default function ChatInput() {
   const { selectedConversation } = useSelector((state) => state.conversation);
-  const { messages } = useSelector((state) => state.message);
   const dispatch = useDispatch();
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSendMessage = async () => {
-    if (!value.trim() || !selectedConversation?._id || loading) return;
+    if (!value.trim() || loading) return;
 
     const userPrompt = value.trim();
-    setValue(""); // Clear input early for snappy UX
+    setValue(""); // Clear input early
 
+    let conversation = selectedConversation;
+
+    // 1. Auto-create conversation if none exists
+    if (!conversation) {
+      try {
+        const initialTitle =
+          userPrompt.length > 30 ? `${userPrompt.slice(0, 30)}...` : userPrompt;
+
+        const conv = await createConversation(initialTitle);
+
+        // Set selected conversation first
+        dispatch(setSelectedConversation(conv));
+        dispatch(addConversation(conv));
+        conversation = conv;
+      } catch (error) {
+        console.error("Failed to create conversation:", error);
+        return;
+      }
+    }
+
+    // 2. Dispatch user message AFTER conversation is set in Redux
     const userMessage = { role: "user", content: userPrompt };
-
-    // 1. Correct Array Spread
-    const updatedMessages = [...messages, userMessage];
-    dispatch(addMessage(updatedMessages));
+    dispatch(addMessage(userMessage));
 
     try {
       setLoading(true);
 
       const payload = {
         prompt: userPrompt,
-        conversationId: selectedConversation._id,
+        conversationId: conversation._id,
       };
 
       const data = await sendMessage(payload);
 
-      // 2. Append the AI response to Redux
       if (data) {
         const aiMessage = { role: "assistant", content: data };
-        dispatch(setMessages([...updatedMessages, aiMessage]));
+        dispatch(addMessage(aiMessage));
       }
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -46,7 +67,6 @@ export default function ChatInput() {
   };
 
   const handleKeyDown = (e) => {
-    // Send on Enter key press (unless Shift + Enter is held for newlines)
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -63,7 +83,7 @@ export default function ChatInput() {
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           value={value}
-          disabled={loading || !selectedConversation}
+          disabled={loading}
         />
 
         <div className="flex items-center justify-between pt-1">
@@ -89,7 +109,7 @@ export default function ChatInput() {
             onClick={handleSendMessage}
             className="p-2 text-white bg-linear-to-br from-indigo-500 to-violet-700 hover:opacity-90 active:scale-95 rounded-xl transition-all duration-150 cursor-pointer shadow-md shadow-indigo-500/20 disabled:opacity-40"
             title="Send message"
-            disabled={!value.trim() || loading || !selectedConversation}
+            disabled={!value.trim() || loading}
           >
             <Send size={16} />
           </button>
