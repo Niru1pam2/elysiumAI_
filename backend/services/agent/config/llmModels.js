@@ -1,29 +1,44 @@
 import dotenv from "dotenv";
-dotenv.config(); // Ensures environment variables are loaded immediately
+dotenv.config();
 
 import { ChatGroq } from "@langchain/groq";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenRouter } from "@langchain/openrouter";
 
-// 1. Instantiating models after dotenv is loaded
-const groq = new ChatGroq({
-  model: "llama-3.3-70b-versatile", // Use a valid Groq model
-  apiKey: process.env.GROQ_API_KEY,
-});
-
-const gemini = new ChatGoogleGenerativeAI({
-  model: "gemini-2.0-flash", // Use a valid Gemini model
-  apiKey: process.env.GEMINI_API_KEY,
-});
-
+// Helper function to lazy-load instances when needed
 export const getModel = async (agent) => {
+  // Ensure API Key exists before attempting call
+  if (agent === "coding" && !process.env.OPENROUTER_API_KEY) {
+    throw new Error(
+      "OPENROUTER_API_KEY is missing from environment variables.",
+    );
+  }
+
   switch (agent) {
     case "chat":
-      return groq;
+      return new ChatGroq({
+        model: "llama-3.3-70b-versatile",
+        apiKey: process.env.GROQ_API_KEY,
+      });
     case "search":
-      return groq;
+      return new ChatGroq({
+        model: "llama-3.3-70b-versatile",
+        apiKey: process.env.GROQ_API_KEY,
+      });
+
     case "coding":
-      return groq;
+      return new ChatOpenRouter({
+        model: "deepseek/deepseek-chat",
+        temperature: 0,
+        maxTokens: 8192,
+        apiKey: process.env.OPENROUTER_API_KEY,
+        openrouterApiKey: process.env.OPENROUTER_API_KEY,
+      });
+
     default:
-      return groq;
+      return new ChatGroq({
+        model: "llama-3.3-70b-versatile",
+        apiKey: process.env.GROQ_API_KEY,
+      });
   }
 };

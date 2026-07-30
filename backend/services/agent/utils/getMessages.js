@@ -16,6 +16,8 @@ export const getMessages = async (conversationId, headers = {}) => {
       },
     );
 
+    console.log(response.headers);
+
     return response.data;
   } catch (error) {
     console.error(
