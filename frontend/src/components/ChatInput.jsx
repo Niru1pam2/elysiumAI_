@@ -17,7 +17,7 @@ import {
   addConversation,
   setSelectedConversation,
 } from "../redux/conversationSlice";
-import { addMessage } from "../redux/messageSlice";
+import { addMessage, setArtifacts, setMessages } from "../redux/messageSlice";
 
 export default function ChatInput() {
   const { selectedConversation } = useSelector((state) => state.conversation);
@@ -42,6 +42,8 @@ export default function ChatInput() {
 
         const conv = await createConversation(initialTitle);
 
+        dispatch(setMessages([]));
+        dispatch(setArtifacts([]));
         // Set selected conversation first
         dispatch(setSelectedConversation(conv));
         dispatch(addConversation(conv));
@@ -66,14 +68,15 @@ export default function ChatInput() {
       };
 
       const data = await sendMessage(payload);
-      console.log(data);
 
       if (data) {
         const aiMessage = {
           role: "assistant",
           content: data.answer,
           images: data.images,
+          artifacts: data.artifacts || [],
         };
+        dispatch(setArtifacts(data?.artifacts || []));
         dispatch(addMessage(aiMessage));
       }
     } catch (error) {

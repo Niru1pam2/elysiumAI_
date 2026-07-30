@@ -4,6 +4,7 @@ const messageSlice = createSlice({
   name: "message",
   initialState: {
     messages: [],
+    artifacts: [],
   },
   reducers: {
     setMessages: (state, action) => {
@@ -19,13 +20,18 @@ const messageSlice = createSlice({
         state.messages = [];
       }
     },
-    // Useful helper for appending new chat messages in real-time
     addMessage: (state, action) => {
       state.messages.push(action.payload);
+    },
+    setArtifacts: (state, action) => {
+      state.artifacts = Array.isArray(action.payload) ? action.payload : [];
+    },
+    addArtifact: (state, action) => {
+      state.artifacts.push(action.payload);
     },
   },
 });
 
-export const { setMessages, addMessage } = messageSlice.actions;
+export const { setMessages, addMessage, setArtifacts } = messageSlice.actions;
 
 export default messageSlice.reducer;
