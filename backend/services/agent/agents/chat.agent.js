@@ -7,20 +7,21 @@ import { getModel } from "../config/llmModels.js";
 import { getMemory } from "../config/memory.js";
 
 export const chatAgent = async (state) => {
-  const llm = await getModel("chat");
-  const history = await getMemory(state.conversationId, state.headers);
+  try {
+    const llm = await getModel("chat");
+    const history = await getMemory(state.conversationId, state.headers);
 
-  const searchContext = state.searchResults
-    ? `
+    const searchContext = state.searchResults
+      ? `
   Web Search Results:
 
   ${JSON.stringify(state.searchResults)}
 
   Answer the user using only the above search results.
   `
-    : "";
+      : "";
 
-  const systemPrompt = `You are elysiumAI, an intelligent AI assistant.
+    const systemPrompt = `You are elysiumAI, an intelligent AI assistant.
 
   ${searchContext}
 
@@ -46,28 +47,34 @@ export const chatAgent = async (state) => {
   - Never generate large walls of text.
   `;
 
-  // 1. Initialize message array with system prompt
-  const messages = [new SystemMessage(systemPrompt)];
+    // 1. Initialize message array with system prompt
+    const messages = [new SystemMessage(systemPrompt)];
 
-  // 2. Push past conversation history
-  if (Array.isArray(history)) {
-    history.forEach((msg) => {
-      if (msg.role === "user") {
-        messages.push(new HumanMessage(msg.content));
-      } else {
-        messages.push(new AIMessage(msg.content));
-      }
-    });
+    // 2. Push past conversation history
+    if (Array.isArray(history)) {
+      history.forEach((msg) => {
+        if (msg.role === "user") {
+          messages.push(new HumanMessage(msg.content));
+        } else {
+          messages.push(new AIMessage(msg.content));
+        }
+      });
+    }
+
+    // 3. Push current user message from state
+    messages.push(new HumanMessage(state.prompt));
+
+    // 4. Pass the complete history to the model
+    const response = await llm.invoke(messages);
+
+    return {
+      ...state,
+      aiResponse: response.content,
+    };
+  } catch (error) {
+    return {
+      ...state,
+      aiResponse: "Failed to generate response.",
+    };
   }
-
-  // 3. Push current user message from state
-  messages.push(new HumanMessage(state.prompt));
-
-  // 4. Pass the complete history to the model
-  const response = await llm.invoke(messages);
-
-  return {
-    ...state,
-    aiResponse: response.content,
-  };
 };

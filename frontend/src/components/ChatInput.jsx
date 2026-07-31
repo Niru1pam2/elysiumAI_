@@ -2,6 +2,7 @@ import {
   Code2,
   FileText,
   Globe,
+  ImageIcon,
   MessageSquare,
   Mic,
   Paperclip,
@@ -98,6 +99,11 @@ export default function ChatInput() {
       id: "auto",
       icon: Zap,
       label: "Auto",
+    },
+    {
+      id: "vision",
+      icon: ImageIcon,
+      label: "vision",
     },
     {
       id: "chat",
