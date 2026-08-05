@@ -1,4 +1,5 @@
 import { getModel } from "../config/llmModels.js";
+import { updateCredits } from "../utils/deductCredits.js";
 
 export const codingAgent = async (state) => {
   try {
@@ -6,77 +7,77 @@ export const codingAgent = async (state) => {
     const llm = await getModel("coding");
 
     const intentRes = await intentLlm.invoke(`
-        You are an intent classifier.
-
-        Return ONLY one of these values.
-
-        CODE_GENERATION
-        CODE_REVIEW
+      You are an intent classifier.
+      
+      Return ONLY one of these values.
+      
+      CODE_GENERATION
+      CODE_REVIEW
         CODE_EXPLANATION
         DEBUGGING
         OPTIMIZATION
         CONVERSION
         DOCUMENTATION
-
+        
         User Request:
         ${state.prompt}
-    `);
+        `);
 
     // Clean whitespace/newlines from classifier response
     const intent = intentRes.content ? String(intentRes.content).trim() : "";
 
     if (intent === "CODE_GENERATION") {
       const prompt = `You are elysiumAI Coding Agent.
-
-Generate the requested project.
-
-Default stack:
-- HTML
-- CSS
-- JavaScript
-
-Use React / Next.js / Vue ONLY if explicitly requested.
-
-Rules:
-- Responsive
-- Modern UI
-- CSS Variables
-- Flexbox/Grid
-- Smooth Scroll
-- Hover Effects
-- Beautiful spacing
-- Single page unless user asks otherwise.
-
-Return ONLY valid JSON.
-
-Schema:
-{
-  "files": [
-    {
-      "name": "index.html",
-      "content": "..."
-    },
+          
+          Generate the requested project.
+          
+          Default stack:
+          - HTML
+          - CSS
+          - JavaScript
+          
+          Use React / Next.js / Vue ONLY if explicitly requested.
+          
+          Rules:
+          - Responsive
+          - Modern UI
+          - CSS Variables
+          - Flexbox/Grid
+          - Smooth Scroll
+          - Hover Effects
+          - Beautiful spacing
+          - Single page unless user asks otherwise.
+          
+          Return ONLY valid JSON.
+          
+          Schema:
+          {
+            "files": [
+              {
+                "name": "index.html",
+                "content": "..."
+                },
     {
       "name": "style.css",
       "content": "..."
-    },
-    {
-      "name": "script.js",
-      "content": "..."
-    }
-  ]
-}
-
-Rules:
-- Output must start with {
-- Output must end with }
-- No markdown
-- No explanation
-- No extra text
-- Do not wrap the JSON in backticks or code blocks
-- Never mention intent
-
-User Request:
+      },
+      {
+        "name": "script.js",
+        "content": "..."
+        }
+        ]
+        }
+        
+        Rules:
+        - Output must start with {
+          - Output must end with }
+          - No markdown
+          - No explanation
+          - No extra text
+          - Do not wrap the JSON in backticks or code blocks
+          - Never mention intent
+          
+          User Request:
 ${state.prompt}`;
 
       const res = await llm.invoke(prompt);
@@ -101,6 +102,7 @@ ${state.prompt}`;
         };
       }
 
+      await updateCredits(state.userId, "coding", state.headers);
       return {
         ...state,
         aiResponse: "Code generated successfully.",
@@ -117,22 +119,24 @@ ${state.prompt}`;
 
     // Default handling for all other intents
     const res = await llm.invoke(`
-    The user's request intent is: ${intent}
-
-    Return Markdown only.
-    Never generate project files.
-
-    Use headings like:
-    # Overview
-    ## Explanation
-    ## Problems
-    ## Improvements
+      The user's request intent is: ${intent}
+      
+      Return Markdown only.
+      Never generate project files.
+      
+      Use headings like:
+      # Overview
+      ## Explanation
+      ## Problems
+      ## Improvements
     ## Best practices
     ## Optimized Code (if needed)
-
+    
     User Request:
     ${state.prompt}
     `);
+
+    await updateCredits(state.userId, "coding", state.headers);
 
     return {
       ...state,

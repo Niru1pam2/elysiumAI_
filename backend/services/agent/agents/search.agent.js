@@ -1,4 +1,5 @@
 import { searchTool } from "../config/tavily.js";
+import { updateCredits } from "../utils/deductCredits.js";
 
 export const searchAgent = async (state) => {
   try {
@@ -6,7 +7,8 @@ export const searchAgent = async (state) => {
       query: state.prompt,
     });
 
-    console.log(results);
+    await updateCredits(state.userId, "search", state.headers);
+
     return {
       ...state,
       searchResults: results,
