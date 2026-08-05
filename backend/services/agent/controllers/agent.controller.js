@@ -22,6 +22,8 @@ export const agent = async (req, res) => {
     const { prompt, conversationId, agent } = req.body;
     const forwardHeaders = getForwardHeaders(req);
 
+    const userId = forwardHeaders["x-user-id"];
+
     // 1. Save user message to Chat Service
     await axios.post(
       `${process.env.CHAT_SERVICE_URL}/save-message`,
@@ -40,8 +42,9 @@ export const agent = async (req, res) => {
     const result = await graph.invoke({
       prompt,
       conversationId,
-      headers: req.headers,
+      headers: forwardHeaders,
       agent,
+      userId,
     });
 
     const response = result.aiResponse;

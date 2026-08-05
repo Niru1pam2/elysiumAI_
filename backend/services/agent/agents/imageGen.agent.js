@@ -2,6 +2,7 @@ import axios from "axios";
 import { getModel } from "../config/llmModels.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
 import { getFromS3 } from "../utils/getFromS3.js";
+import { updateCredits } from "../utils/deductCredits.js";
 
 export const imageGenAgent = async (state) => {
   try {
@@ -43,6 +44,7 @@ ${state.prompt}
 
     await uploadToS3(filename, buffer, "image/png");
     const downloadUrl = await getFromS3(filename, 24 * 60 * 60);
+    await updateCredits(state.userId, "vision", state.headers);
 
     return {
       ...state,

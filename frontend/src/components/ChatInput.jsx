@@ -19,6 +19,8 @@ import {
   setSelectedConversation,
 } from "../redux/conversationSlice";
 import { addMessage, setArtifacts, setMessages } from "../redux/messageSlice";
+import api from "../../utils/axios";
+import { setUser } from "../redux/userSlice";
 
 export default function ChatInput() {
   const { selectedConversation } = useSelector((state) => state.conversation);
@@ -45,7 +47,6 @@ export default function ChatInput() {
 
         dispatch(setMessages([]));
         dispatch(setArtifacts([]));
-        // Set selected conversation first
         dispatch(setSelectedConversation(conv));
         dispatch(addConversation(conv));
         conversation = conv;
@@ -55,7 +56,7 @@ export default function ChatInput() {
       }
     }
 
-    // 2. Dispatch user message AFTER conversation is set in Redux
+    // 2. Dispatch user message to UI
     const userMessage = { role: "user", content: userPrompt };
     dispatch(addMessage(userMessage));
 
@@ -68,17 +69,37 @@ export default function ChatInput() {
         agent: selectedAgent.toLowerCase(),
       };
 
-      const data = await sendMessage(payload);
+      // Send prompt to AI Agent service
+      const resData = await sendMessage(payload);
 
-      if (data) {
+      if (resData) {
+        const newArtifacts = resData.artifacts || [];
+
         const aiMessage = {
           role: "assistant",
-          content: data.answer,
-          images: data.images,
-          artifacts: data.artifacts || [],
+          content: resData.answer,
+          images: resData.images || [],
+          artifacts: newArtifacts,
         };
-        dispatch(setArtifacts(data?.artifacts || []));
+
+        // Add assistant message to Redux
         dispatch(addMessage(aiMessage));
+
+        // Append new artifacts if present (instead of blowing away previous ones)
+        if (newArtifacts.length > 0) {
+          dispatch(setArtifacts((prev) => [...prev, ...newArtifacts]));
+          // Note: or use dispatch(addArtifacts(newArtifacts)) if you have a dedicated action
+        }
+
+        // Fetch fresh user data (credits deducted) with unique variable name
+        try {
+          const { data: updatedUserData } = await api.get("/api/me");
+          if (updatedUserData) {
+            dispatch(setUser(updatedUserData));
+          }
+        } catch (userErr) {
+          console.error("Failed to refresh user credits:", userErr);
+        }
       }
     } catch (error) {
       console.error("Failed to send message:", error);

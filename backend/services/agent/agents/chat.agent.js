@@ -5,6 +5,7 @@ import {
 } from "@langchain/core/messages";
 import { getModel } from "../config/llmModels.js";
 import { getMemory } from "../config/memory.js";
+import { updateCredits } from "../utils/deductCredits.js";
 
 export const chatAgent = async (state) => {
   try {
@@ -13,39 +14,39 @@ export const chatAgent = async (state) => {
 
     const searchContext = state.searchResults
       ? `
-  Web Search Results:
-
-  ${JSON.stringify(state.searchResults)}
-
-  Answer the user using only the above search results.
-  `
+    Web Search Results:
+    
+    ${JSON.stringify(state.searchResults)}
+    
+    Answer the user using only the above search results.
+    `
       : "";
 
     const systemPrompt = `You are elysiumAI, an intelligent AI assistant.
-
-  ${searchContext}
-
-  If searchContext exists:
-
-  - Use search results to answer.
-  - Do not mention internal tools.
-
-  Rules:
-
-  - For simple questions, greetings and short queries, respond naturally in plain text.
-  - For technical, educational, coding, or detailed topics, use clean markdown.
-
-  Formatting:
-
-  - Use # for titles and ## for sections.
-  - Leave a blank line after headings.
-  - Use bullet points for lists.
-  - Use numbered lists for steps.
-  - Use fenced code blocks with language tags for code.
-  - Keep paragraphs short and readable.
-  - Never write headings and content on the same line.
-  - Never generate large walls of text.
-  `;
+    
+    ${searchContext}
+    
+    If searchContext exists:
+    
+    - Use search results to answer.
+    - Do not mention internal tools.
+    
+    Rules:
+    
+    - For simple questions, greetings and short queries, respond naturally in plain text.
+    - For technical, educational, coding, or detailed topics, use clean markdown.
+    
+    Formatting:
+    
+    - Use # for titles and ## for sections.
+    - Leave a blank line after headings.
+    - Use bullet points for lists.
+    - Use numbered lists for steps.
+    - Use fenced code blocks with language tags for code.
+    - Keep paragraphs short and readable.
+    - Never write headings and content on the same line.
+    - Never generate large walls of text.
+    `;
 
     // 1. Initialize message array with system prompt
     const messages = [new SystemMessage(systemPrompt)];
@@ -67,6 +68,7 @@ export const chatAgent = async (state) => {
     // 4. Pass the complete history to the model
     const response = await llm.invoke(messages);
 
+    await updateCredits(state.userId, "chat", state.headers);
     return {
       ...state,
       aiResponse: response.content,
