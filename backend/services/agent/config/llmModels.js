@@ -35,6 +35,12 @@ export const getModel = async (agent) => {
         openrouterApiKey: process.env.OPENROUTER_API_KEY,
       });
 
+    case "imageAnalyzer":
+      return new ChatGoogleGenerativeAI({
+        model: "gemini-2.5-flash",
+        apiKey: process.env.GOOGLE_API_KEY,
+      });
+
     default:
       return new ChatGroq({
         model: "llama-3.3-70b-versatile",

@@ -8,13 +8,29 @@ export const router = async (state) => {
     };
   }
 
+  console.log("FILE in state", state.file);
+
+  if (state.file?.mimetype?.startsWith("application/pdf")) {
+    return {
+      ...state,
+      agent: "pdfRag",
+    };
+  }
+
+  if (state.file?.mimetype?.startsWith("image/")) {
+    return {
+      ...state,
+      agent: "imageAnalyzer",
+    };
+  }
+
   const llm = await getModel("router");
 
   // 1. Ensure prompt is a plain string
   const userQuery =
     typeof state.prompt === "string"
       ? state.prompt
-      : state.prompt?.content || JSON.stringify(state.prompt);
+      : state.prompt?.content || JSON.stringify(state.prompt || "");
 
   const promptText = `
     You are an agent router.
@@ -53,7 +69,10 @@ export const router = async (state) => {
   const agentChoice = (response.content || response)
     .toString()
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/[^a-z]/g, ""); // Removes trailing dots, quotes, markdown
+
+  console.log("AGENT CHOICE", agentChoice);
 
   return {
     ...state,
