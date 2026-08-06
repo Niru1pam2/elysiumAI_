@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import getMessages from "../features/getMessages";
 import { setArtifacts, setMessages } from "../redux/messageSlice";
 
-export default function ChatArea() {
+export default function ChatArea({ onOpenMobileSidebar }) {
   const { selectedConversation } = useSelector((state) => state.conversation);
   const dispatch = useDispatch();
 
@@ -48,9 +48,9 @@ export default function ChatArea() {
   }, [dispatch, selectedConversation?._id]);
 
   return (
-    // 🔴 Added h-full min-h-0 overflow-hidden so ChatInput stays pinned at the bottom!
     <div className="flex-1 flex flex-col h-full min-h-0 bg-[#0d0f14] overflow-hidden relative">
-      <Nav />
+      {/* Forward prop to Nav */}
+      <Nav onOpenMobileSidebar={onOpenMobileSidebar} />
       <MessageList />
       <ChatInput />
     </div>

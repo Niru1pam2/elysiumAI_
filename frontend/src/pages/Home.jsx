@@ -11,20 +11,19 @@ import ChatArea from "../components/ChatArea";
 import Artifact from "../components/Artifact";
 
 function Home() {
-  // 1. FIX: Correctly extract the inner `user` property
   const user = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // 2. FIX: Check session on initial load/reload
+  // Check auth status on page load/reload
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
         const { data } = await api.get("/api/me");
         dispatch(setUser(data));
       } catch (error) {
-        console.log(error);
-        // If cookie is invalid or missing, clear Redux
+        console.log("Auth session check error:", error);
         dispatch(setUser(null));
       } finally {
         setLoading(false);
@@ -40,7 +39,6 @@ function Home() {
       const data = await signInWithPopup(auth, googleProvider);
       const token = await data.user.getIdToken();
 
-      // Send token to gateway (sets HTTP-only cookie automatically)
       const response = await api.post("/api/auth/login", { token });
       dispatch(setUser(response.data));
     } catch (error) {
@@ -48,21 +46,9 @@ function Home() {
     }
   };
 
-  // Handle Logout
-  const handleLogout = async () => {
-    try {
-      await api.post("/api/auth/logout");
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      dispatch(setUser(null));
-    }
-  };
-
-  // Prevent UI flashing while checking session status
   if (loading) {
     return (
-      <div className="h-screen bg-black text-white flex items-center justify-center">
+      <div className="h-screen bg-[#0d0f14] text-white flex items-center justify-center font-medium">
         Loading ElysiumAI...
       </div>
     );
@@ -70,14 +56,18 @@ function Home() {
 
   return (
     <div className="h-screen flex bg-black text-white overflow-hidden">
-      <Sidebar onLogout={handleLogout} />
-      <ChatArea />
+      {/* Sidebar with mobile state */}
+      <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+
+      {/* Pass mobile toggle handler into ChatArea */}
+      <ChatArea onOpenMobileSidebar={() => setMobileOpen(true)} />
+
       <Artifact />
 
       {/* Login Modal */}
       {!user && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-85 bg-[#13151c] border border-white/10 rounded-2xl p-7 flex flex-col gap-5">
+          <div className="w-85 bg-[#13151c] border border-white/10 rounded-2xl p-7 flex flex-col gap-5 shadow-2xl">
             <div className="flex flex-col gap-2 text-center">
               <h1 className="text-2xl font-bold">Welcome to ElysiumAI_</h1>
               <p className="text-white/50 text-sm">

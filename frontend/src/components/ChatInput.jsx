@@ -8,9 +8,10 @@ import {
   Paperclip,
   Presentation,
   Send,
+  X,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createConversation } from "../features/createConversation";
 import sendMessage from "../features/sendMessage";
@@ -18,19 +19,26 @@ import {
   addConversation,
   setSelectedConversation,
 } from "../redux/conversationSlice";
-import { addMessage, setArtifacts, setMessages } from "../redux/messageSlice";
+import {
+  addMessage,
+  setArtifacts,
+  setLoading,
+  setMessages,
+} from "../redux/messageSlice";
 import api from "../../utils/axios";
 import { setUser } from "../redux/userSlice";
 
 export default function ChatInput() {
   const { selectedConversation } = useSelector((state) => state.conversation);
+  const { isLoading } = useSelector((state) => state.message);
   const [selectedAgent, setSelectedAgent] = useState("Auto");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileRef = useRef(null);
   const dispatch = useDispatch();
   const [value, setValue] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleSendMessage = async () => {
-    if (!value.trim() || loading) return;
+    if (!value.trim() || isLoading) return;
 
     const userPrompt = value.trim();
     setValue(""); // Clear input early
@@ -61,16 +69,17 @@ export default function ChatInput() {
     dispatch(addMessage(userMessage));
 
     try {
-      setLoading(true);
+      dispatch(setLoading(true));
 
-      const payload = {
-        prompt: userPrompt,
-        conversationId: conversation._id,
-        agent: selectedAgent.toLowerCase(),
-      };
+      const formData = new FormData();
+
+      formData.append("prompt", userPrompt);
+      formData.append("conversationId", conversation._id);
+      formData.append("agent", selectedAgent.toLowerCase());
+      formData.append("file", selectedFile);
 
       // Send prompt to AI Agent service
-      const resData = await sendMessage(payload);
+      const resData = await sendMessage(formData);
 
       if (resData) {
         const newArtifacts = resData.artifacts || [];
@@ -84,6 +93,7 @@ export default function ChatInput() {
 
         // Add assistant message to Redux
         dispatch(addMessage(aiMessage));
+        setSelectedFile(null);
 
         // Append new artifacts if present (instead of blowing away previous ones)
         if (newArtifacts.length > 0) {
@@ -104,7 +114,7 @@ export default function ChatInput() {
     } catch (error) {
       console.error("Failed to send message:", error);
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
   };
 
@@ -184,6 +194,32 @@ export default function ChatInput() {
             );
           })}
         </div>
+        {selectedFile && (
+          <div className="my-3">
+            <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+              {selectedFile.type === "application/pdf" ? (
+                <FileText size={16} className="text-red-400" />
+              ) : selectedFile.type.startsWith("image/") ? (
+                <img
+                  src={URL.createObjectURL(selectedFile)}
+                  alt="Preview"
+                  className="h-10 w-10 rounded-xl object-cover"
+                />
+              ) : null}
+
+              {/* File Name Label */}
+              <span className="text-xs text-slate-300 truncate max-w-37.5">
+                {selectedFile.name}
+              </span>
+              <button
+                onClick={() => setSelectedFile(null)}
+                className="cursor-pointer"
+              >
+                <X className="text-red-500" size={16} />
+              </button>
+            </div>
+          </div>
+        )}
 
         <textarea
           className="w-full bg-transparent outline-none resize-none text-[14px] text-slate-200 placeholder:text-slate-500 leading-relaxed scrollbar-none [&::-webkit-scrollbar]:hidden disabled:opacity-50 min-h-18"
@@ -192,15 +228,28 @@ export default function ChatInput() {
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           value={value}
-          disabled={loading}
+          disabled={isLoading}
         />
 
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-1">
+            <input
+              type="file"
+              accept=".pdf,image/*"
+              hidden
+              ref={fileRef}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  setSelectedFile(file);
+                }
+              }}
+            />
             <button
               type="button"
               className="p-2 text-slate-400 hover:text-indigo-300 hover:bg-white/5 rounded-xl transition-all duration-150 cursor-pointer"
               title="Attach file"
+              onClick={() => fileRef.current.click()}
             >
               <Paperclip size={18} />
             </button>
@@ -218,7 +267,7 @@ export default function ChatInput() {
             onClick={handleSendMessage}
             className="p-2 text-white bg-linear-to-br from-indigo-500 to-violet-700 hover:opacity-90 active:scale-95 rounded-xl transition-all duration-150 cursor-pointer shadow-md shadow-indigo-500/20 disabled:opacity-40"
             title="Send message"
-            disabled={!value.trim() || loading}
+            disabled={!value.trim() || isLoading}
           >
             <Send size={16} />
           </button>

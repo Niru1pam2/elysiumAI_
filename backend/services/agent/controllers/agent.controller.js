@@ -20,6 +20,8 @@ const getForwardHeaders = (req) => {
 export const agent = async (req, res) => {
   try {
     const { prompt, conversationId, agent } = req.body;
+    const file = req.file;
+
     const forwardHeaders = getForwardHeaders(req);
 
     const userId = forwardHeaders["x-user-id"];
@@ -45,6 +47,7 @@ export const agent = async (req, res) => {
       headers: forwardHeaders,
       agent,
       userId,
+      file,
     });
 
     const response = result.aiResponse;
