@@ -5,9 +5,12 @@ import { vectorStore } from "../config/vectorDb.js";
 import { getModel } from "../config/llmModels.js";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { updateCredits } from "../utils/deductCredits.js";
+import { checkAgentLimit } from "../config/agentLimit.js";
 
 export const pdfRag = async (state) => {
   try {
+    await checkAgentLimit(state.userId, "pdf");
+
     const buffer = fs.readFileSync(state.file.path);
     const pdf = new PDFParse({ data: buffer });
 
@@ -62,7 +65,12 @@ export const pdfRag = async (state) => {
       aiResponse: response.content,
     };
   } catch (error) {
-    console.log(error);
+    if (error.status == 429) {
+      return {
+        ...state,
+        aiResponse: error?.data.message,
+      };
+    }
 
     return {
       ...state,

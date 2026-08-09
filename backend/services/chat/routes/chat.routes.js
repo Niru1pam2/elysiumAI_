@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createConversation,
+  deleteConversation,
   getConversations,
   getMessages,
   saveMessage,
@@ -20,6 +21,8 @@ router.post("/save-message", saveMessage);
 
 // Fixed: GET for fetching messages by param
 router.get("/get-messages/:conversationId", getMessages);
+
+router.delete("/delete/:conversationId", deleteConversation);
 
 // Fixed: PATCH or PUT for updating
 router.patch("/update-conversation", updateConversation);

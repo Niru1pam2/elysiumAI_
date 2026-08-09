@@ -15,12 +15,14 @@ import { createConversation } from "../features/createConversation";
 import { getConversations } from "../features/getConversations";
 import {
   addConversation,
+  removeConversation,
   setConversations,
   setSelectedConversation,
 } from "../redux/conversationSlice";
 import { logout } from "../features/logOut";
 import { setUser } from "../redux/userSlice";
 import BillingDrawer from "./BillingDrawer";
+import { deleteConversation } from "../features/deleteConversation";
 
 export default function Sidebar({
   mobileOpen = false,
@@ -53,6 +55,18 @@ export default function Sidebar({
       dispatch(addConversation(data));
       dispatch(setSelectedConversation(data));
       setMobileOpen(false);
+    }
+  };
+
+  const handleDeleteConversation = async (conversationId) => {
+    try {
+      const response = await deleteConversation(conversationId);
+      if (response) {
+        // Filter out deleted chat from Redux
+        dispatch(removeConversation(conversationId));
+      }
+    } catch (error) {
+      console.error("Delete failed:", error);
     }
   };
 
@@ -198,6 +212,7 @@ export default function Sidebar({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          handleDeleteConversation(conversation._id);
                           // Insert delete action handler here
                         }}
                         className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-400 rounded-md transition-all shrink-0 cursor-pointer"

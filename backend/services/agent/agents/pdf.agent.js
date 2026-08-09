@@ -3,9 +3,12 @@ import { generatePdf } from "../utils/generatePdf.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
 import { getFromS3 } from "../utils/getFromS3.js";
 import { updateCredits } from "../utils/deductCredits.js";
+import { checkAgentLimit } from "../config/agentLimit.js";
 
 export const pdfAgent = async (state) => {
   try {
+    await checkAgentLimit(state.userId, "pdf");
+
     const llm = await getModel("pdf");
     const prompt = `
         You are an expert document writer.
@@ -60,7 +63,12 @@ Your PDF document has been compiled and uploaded.
 *Note: The download link will expire in 24 hours.*`.trim(),
     };
   } catch (error) {
-    console.log(error);
+    if (error.status == 429) {
+      return {
+        ...state,
+        aiResponse: error?.data.message,
+      };
+    }
     return {
       ...state,
       aiResponse: "Failed to generate Pdf.",

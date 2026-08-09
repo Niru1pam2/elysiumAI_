@@ -1,8 +1,11 @@
+import { checkAgentLimit } from "../config/agentLimit.js";
 import { getModel } from "../config/llmModels.js";
 import { updateCredits } from "../utils/deductCredits.js";
 
 export const codingAgent = async (state) => {
   try {
+    await checkAgentLimit(state.userId, "coding");
+
     const intentLlm = await getModel("intent");
     const llm = await getModel("coding");
 
@@ -144,7 +147,15 @@ ${state.prompt}`;
       artifacts: [],
     };
   } catch (error) {
-    console.error("Error in codingAgent:", error);
-    throw error;
+    if (error.status == 429) {
+      return {
+        ...state,
+        aiResponse: error?.data.message,
+      };
+    }
+    return {
+      ...state,
+      aiResponse: "Failed to analyze code.",
+    };
   }
 };

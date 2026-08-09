@@ -2,9 +2,12 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { getModel } from "../config/llmModels.js";
 import fs from "fs";
 import { updateCredits } from "../utils/deductCredits.js";
+import { checkAgentLimit } from "../config/agentLimit.js";
 
 export const imageAnalyzer = async (state) => {
   try {
+    await checkAgentLimit(state.userId, "vision");
+
     const llm = await getModel("imageAnalyzer");
 
     // 1. Read file synchronously into a buffer
@@ -51,7 +54,12 @@ Rules:
       aiResponse: response.content,
     };
   } catch (error) {
-    console.error("Image Analyzer Error:", error);
+    if (error.status == 429) {
+      return {
+        ...state,
+        aiResponse: error?.data.message,
+      };
+    }
     return {
       ...state,
       aiResponse: "Failed to analyze image.",
