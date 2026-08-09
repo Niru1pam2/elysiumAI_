@@ -3,9 +3,12 @@ import { generatePpt } from "../utils/generatePpt.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
 import { getFromS3 } from "../utils/getFromS3.js";
 import { updateCredits } from "../utils/deductCredits.js";
+import { checkAgentLimit } from "../config/agentLimit.js";
 
 export const pptAgent = async (state) => {
   try {
+    await checkAgentLimit(state.userId, "ppt");
+
     const llm = await getModel("ppt");
     const prompt = `You are a professional presentation designer.
 
@@ -66,6 +69,15 @@ Your PPT document has been compiled and uploaded.
 *Note: The download link will expire in 24 hours.*`.trim(),
     };
   } catch (error) {
-    console.error("Error occurred while generating PPT:", error);
+    if (error.status == 429) {
+      return {
+        ...state,
+        aiResponse: error?.data.message,
+      };
+    }
+    return {
+      ...state,
+      aiResponse: "Failed to generate Pdf.",
+    };
   }
 };

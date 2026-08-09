@@ -17,7 +17,7 @@ const getForwardHeaders = (req) => {
   return headers;
 };
 
-export const agent = async (req, res) => {
+export const agent = async (req, res, next) => {
   try {
     const { prompt, conversationId, agent } = req.body;
     const file = req.file;
@@ -78,12 +78,6 @@ export const agent = async (req, res) => {
       artifacts: result.artifacts || [],
     });
   } catch (error) {
-    console.error(
-      "Agent error details:",
-      error?.response?.data || error?.message,
-    );
-    return res.status(error?.response?.status || 500).json({
-      message: `Agent error: ${error?.response?.data?.message || error.message}`,
-    });
+    next(error);
   }
 };

@@ -15,6 +15,16 @@ const conversationSlice = createSlice({
       state.conversations.unshift(action.payload);
     },
 
+    removeConversation: (state, action) => {
+      state.conversations = state.conversations.filter(
+        (c) => c._id !== action.payload,
+      );
+
+      if (state.selectedConversation?._id === action.payload) {
+        state.selectedConversation = null;
+      }
+    },
+
     setSelectedConversation: (state, action) => {
       state.selectedConversation = action.payload;
     },
@@ -39,6 +49,7 @@ export const {
   addConversation,
   setSelectedConversation,
   setConversationTitle,
+  removeConversation,
 } = conversationSlice.actions;
 
 // Standard Practice: Export the reducer as default

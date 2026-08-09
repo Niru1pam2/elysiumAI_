@@ -45,6 +45,37 @@ export const getConversations = async (req, res) => {
   }
 };
 
+export const deleteConversation = async (req, res) => {
+  try {
+    const userId = getUserIdFromHeader(req, res);
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { conversationId } = req.params;
+    if (!conversationId) {
+      return res.status(400).json({ message: "Conversation ID is required" });
+    }
+
+    const deletedConversation = await Conversation.findOneAndDelete({
+      _id: conversationId,
+      userId,
+    });
+
+    if (!deletedConversation) {
+      return res.status(404).json({ message: "Conversation not found" });
+    }
+
+    return res.status(200).json({
+      message: "Conversation deleted successfully",
+      conversationId,
+    });
+  } catch (error) {
+    console.error("Delete conversation error:", error);
+    return res.status(500).json({ error: "Failed to delete conversation" });
+  }
+};
+
 export const saveMessage = async (req, res) => {
   try {
     const userId = getUserIdFromHeader(req, res);
