@@ -17,12 +17,12 @@ export const getModel = async (agent) => {
   switch (agent) {
     case "chat":
       return new ChatGroq({
-        model: "llama-3.3-70b-versatile",
+        model: "openai/gpt-oss-120b",
         apiKey: process.env.GROQ_API_KEY,
       });
     case "search":
       return new ChatGroq({
-        model: "llama-3.3-70b-versatile",
+        model: "openai/gpt-oss-120b",
         apiKey: process.env.GROQ_API_KEY,
       });
 
@@ -43,7 +43,7 @@ export const getModel = async (agent) => {
 
     default:
       return new ChatGroq({
-        model: "llama-3.3-70b-versatile",
+        model: "openai/gpt-oss-120b",
         apiKey: process.env.GROQ_API_KEY,
       });
   }

@@ -11,7 +11,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createConversation } from "../features/createConversation";
 import sendMessage from "../features/sendMessage";
@@ -33,6 +33,8 @@ export default function ChatInput() {
   const { isLoading } = useSelector((state) => state.message);
   const [selectedAgent, setSelectedAgent] = useState("Auto");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef(null);
   const fileRef = useRef(null);
   const dispatch = useDispatch();
   const [value, setValue] = useState("");
@@ -125,6 +127,21 @@ export default function ChatInput() {
     }
   };
 
+  const toggleMic = () => {
+    if (!recognitionRef.current) {
+      alert("Speech recognition not supported");
+      return;
+    }
+
+    if (listening) {
+      recognitionRef.current.stop();
+      setListening(false);
+    } else {
+      recognitionRef.current.start();
+      setListening(true);
+    }
+  };
+
   const agents = [
     {
       id: "auto",
@@ -162,6 +179,42 @@ export default function ChatInput() {
       label: "Search",
     },
   ];
+
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = true;
+
+    recognition.onresult = (event) => {
+      let transcript = "";
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setValue(transcript);
+    };
+
+    recognition.onend = () => {
+      setListening(false);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      setListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort(); // stops listening immediately & releases mic
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <div className="w-full overflow-hidden px-3 md:px-5 py-4 border-t border-white/6 bg-[#0d0f14]">
@@ -255,8 +308,13 @@ export default function ChatInput() {
             </button>
             <button
               type="button"
-              className="p-2 text-slate-400 hover:text-indigo-300 hover:bg-white/5 rounded-xl transition-all duration-150 cursor-pointer"
+              className={`p-2 rounded-xl transition-all duration-150 cursor-pointer ${
+                listening
+                  ? "text-red-400 bg-red-500/10 animate-pulse"
+                  : "text-slate-400 hover:text-indigo-300 hover:bg-white/5"
+              }`}
               title="Voice input"
+              onClick={toggleMic}
             >
               <Mic size={18} />
             </button>
