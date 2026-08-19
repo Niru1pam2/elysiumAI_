@@ -44,6 +44,7 @@ Topic:
 ${state.prompt}`;
 
     const response = await llm.invoke(prompt);
+
     const pptBuffer = await generatePpt(JSON.parse(response.content));
 
     const fileName = `ppt-${Date.now()}.pptx`;
@@ -69,6 +70,8 @@ Your PPT document has been compiled and uploaded.
 *Note: The download link will expire in 24 hours.*`.trim(),
     };
   } catch (error) {
+    console.log(error);
+
     if (error.status == 429) {
       return {
         ...state,
@@ -77,7 +80,7 @@ Your PPT document has been compiled and uploaded.
     }
     return {
       ...state,
-      aiResponse: "Failed to generate Pdf.",
+      aiResponse: "Failed to generate Ppt.",
     };
   }
 };

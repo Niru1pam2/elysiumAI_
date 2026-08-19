@@ -16,8 +16,8 @@ const protect = async (req, res, next) => {
       // Clear invalid cookie from browser if session expired in Redis
       res.clearCookie("session", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production" || true,
+        sameSite: "none",
       });
       return res.status(401).json({ message: "Unauthorized: Session expired" });
     }
