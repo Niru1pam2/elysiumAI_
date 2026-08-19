@@ -5,8 +5,6 @@
 # Firebase Admin SDK credentials
 serviceAccountKey.json
 
-.github
-
 # Ignore node_modules in ANY folder or subfolder
 **/node_modules
 node_modules/
