@@ -46,7 +46,7 @@ jobs:
       - name: Build auth
         run: |
           docker build \
-          -f backend/services/auth-service/Dockerfile \
+          -f backend/services/auth/Dockerfile \
           -t auth-service backend
 
       - name: Tag auth
