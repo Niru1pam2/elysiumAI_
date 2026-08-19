@@ -78,6 +78,8 @@ export const agent = async (req, res, next) => {
       artifacts: result.artifacts || [],
     });
   } catch (error) {
+    console.log("AGENT ERROR: ", error);
+
     next(error);
   }
 };

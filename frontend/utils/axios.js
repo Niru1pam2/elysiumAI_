@@ -3,7 +3,7 @@ import { store } from "../src/redux/store";
 import { setUser } from "../src/redux/userSlice";
 
 const api = axios.create({
-  baseURL: "http://localhost:8000", // Gateway URL
+  baseURL: import.meta.env.VITE_SERVER_URL, // Gateway URL
   withCredentials: true, // Crucial: Allows browser to send & receive cookies
 });
 

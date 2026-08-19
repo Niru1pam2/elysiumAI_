@@ -5,8 +5,8 @@ import redis from "../../../shared/redis/redis.js";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
+  secure: process.env.NODE_ENV === "production" || true,
+  sameSite: "none",
   maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days in ms
 };
 

@@ -14,12 +14,20 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 app.use(morgan("dev"));
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
-  }),
-);
+
+// Clean frontend URL (removes any trailing slash)
+const frontendUrl = process.env.FRONTEND_URL?.replace(/\/+$/, "");
+
+const corsOptions = {
+  origin: frontendUrl,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+};
+
+app.use(cors(corsOptions));
+// Handle preflight OPTIONS requests before proxying
+
 app.use(cookieParser());
 
 // Root Health Check
