@@ -32,7 +32,7 @@ app.use(cookieParser());
 
 // Root Health Check
 app.get("/", (req, res) => {
-  res.send("Hello from the gateway!");
+  res.send("Hello from the gateway!: v15");
 });
 
 // Auth Verification Route
